@@ -243,10 +243,13 @@ class Initialize:
         if 'M2D' in line:
             logger.warning('Received WPS Message M2D')
 
+            # M2D means the AP declined this registrar exchange, but it does not
+            # prove that the AP Setup Locked bit is set. Keep it separate from
+            # a real lock condition so we do not enter the lock retry loop.
             self.CONNECTION_STATUS.STATUS = 'WPS_FAIL'
-            self.CONNECTION_STATUS.IS_LOCKED = True
+            self.CONNECTION_STATUS.IS_LOCKED = False
 
-            logger.error('This AP is not accepting PINs right now without configuration')
+            logger.error('AP declined the current WPS PIN exchange (M2D); this is not proof of AP Setup Locked')
             return False
 
         if 'Building Message M' in line:
