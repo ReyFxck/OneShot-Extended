@@ -54,18 +54,20 @@ class Data:
 
         lines = command_output.stdout.splitlines()
         interesting_data = False
+        ap_might_be_vulnerable = False
+        pin_not_found = False
 
         for line in lines:
             if 'Looks like you have some interesting data!' in line:
                 interesting_data = True
                 continue
+            if 'The AP might be vulnerable.' in line:
+                ap_might_be_vulnerable = True
+                continue
+            if 'WPS pin not found!' in line:
+                pin_not_found = True
+                continue
             print(line)
-
-        if interesting_data:
-            logger.warning(
-                'Pixiewps recognized a nonce pattern but could not validate a WPS PIN; '
-                'treating this run as inconclusive'
-            )
 
         if command_output.returncode == 0:
             for line in lines:
@@ -75,7 +77,16 @@ class Data:
                     if pin == '<empty>':
                         pin = '\''
 
+                    logger.success('Pixie result: WPS PIN validated')
                     return pin
+
+        if interesting_data or ap_might_be_vulnerable:
+            logger.warning(
+                'Pixie result: potential weak-RNG/nonce pattern detected, '
+                'but the WPS PIN was not validated'
+            )
+        elif pin_not_found:
+            logger.info('Pixie result: no WPS PIN recovered from this sample')
 
         return False
 
