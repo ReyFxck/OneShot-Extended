@@ -27,6 +27,7 @@ class Data:
         self.E_NONCE = ''
         self.R_NONCE = ''
         self.BSSID = ''
+        self.RESULT = ''
 
     def getAll(self):
         """Output all pixiewps related variables."""
@@ -77,16 +78,30 @@ class Data:
                     if pin == '<empty>':
                         pin = '\''
 
+                    self.RESULT = 'validated'
                     logger.success('Pixie result: WPS PIN validated')
                     return pin
 
-        if interesting_data or ap_might_be_vulnerable:
+        if interesting_data and pin_not_found:
+            self.RESULT = 'nonce-derivation-mismatch'
             logger.warning(
-                'Pixie result: potential weak-RNG/nonce pattern detected, '
-                'but the WPS PIN was not validated'
+                'Pixie result: nonce/PRNG pattern matched, but the derived secret nonces '
+                '(E-S1/E-S2) did not validate against E-Hash1/E-Hash2'
+            )
+        elif ap_might_be_vulnerable:
+            self.RESULT = 'potential-weak-rng'
+            logger.warning(
+                'Pixie result: AP shows a potential weak-RNG signature, '
+                'but this sample did not validate a WPS PIN'
             )
         elif pin_not_found:
+            self.RESULT = 'not-found'
             logger.info('Pixie result: no WPS PIN recovered from this sample')
+        else:
+            self.RESULT = 'error'
+            logger.warning(
+                f'Pixie result: unexpected exit/status (code {command_output.returncode})'
+            )
 
         return False
 
