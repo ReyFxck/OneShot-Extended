@@ -52,16 +52,28 @@ class Data:
             logger.error(f'Pixiewps has exited on error: \n {error}')
             return False
 
-        print(command_output.stdout)
+        lines = command_output.stdout.splitlines()
+        interesting_data = False
+
+        for line in lines:
+            if 'Looks like you have some interesting data!' in line:
+                interesting_data = True
+                continue
+            print(line)
+
+        if interesting_data:
+            logger.warning(
+                'Pixiewps recognized a nonce pattern but could not validate a WPS PIN; '
+                'treating this run as inconclusive'
+            )
 
         if command_output.returncode == 0:
-            lines = command_output.stdout.splitlines()
             for line in lines:
                 if ('[+]' in line) and ('WPS pin' in line):
                     pin = line.split(':')[-1].strip()
 
                     if pin == '<empty>':
-                        pin = '\'\''
+                        pin = '\''
 
                     return pin
 
