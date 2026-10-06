@@ -251,7 +251,7 @@ class WiFiScanner:
 
         print('Network marks: {1} {0} {2} {0} {3} {0} {4}'.format(
             '|',
-            colored('Vulnerable model', color='green'),
+            colored('Known vulnerable model', color='green'),
             colored('Vulnerable WPS ver.', color='dark_green'),
             colored('WPS locked', color='red'),
             colored('Already stored', color='yellow')
